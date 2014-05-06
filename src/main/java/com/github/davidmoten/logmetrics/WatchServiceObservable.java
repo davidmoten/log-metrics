@@ -21,23 +21,36 @@ public class WatchServiceObservable {
     }
 
     public static Observable<WatchEvent<?>> from(final File file, Kind<Path>... kinds) {
-        // TODO delay evaluation by putting in OnSubscribe
-        return events(file, kinds).filter(onlyRelatedTo(file));
+        return watchService(file, kinds).flatMap(
+                new Func1<WatchService, Observable<WatchEvent<?>>>() {
+
+                    @Override
+                    public Observable<WatchEvent<?>> call(WatchService watchService) {
+                        return from(watchService);
+                    }
+                }).filter(onlyRelatedTo(file));
     }
 
-    private static Observable<WatchEvent<?>> events(final File file, Kind<Path>... kinds) {
-        final Path path;
-        if (file.isDirectory())
-            path = Paths.get(file.toURI());
-        else
-            path = Paths.get(file.getParentFile().toURI());
-        try {
-            WatchService watchService = path.getFileSystem().newWatchService();
-            path.register(watchService, kinds);
-            return from(watchService);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public static Observable<WatchService> watchService(final File file, final Kind<Path>... kinds) {
+        return Observable.create(new OnSubscribe<WatchService>() {
+
+            @Override
+            public void call(Subscriber<? super WatchService> subscriber) {
+                final Path path;
+                if (file.isDirectory())
+                    path = Paths.get(file.toURI());
+                else
+                    path = Paths.get(file.getParentFile().toURI());
+                try {
+                    WatchService watchService = path.getFileSystem().newWatchService();
+                    path.register(watchService, kinds);
+                    subscriber.onNext(watchService);
+                    subscriber.onCompleted();
+                } catch (IOException e) {
+                    subscriber.onError(e);
+                }
+            }
+        });
     }
 
     private static Func1<WatchEvent<?>, Boolean> onlyRelatedTo(final File file) {
