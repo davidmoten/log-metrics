@@ -93,7 +93,7 @@ public class WatchServiceObservable {
 					return;
 				// get the first event before looping
 				WatchKey key = watchService.poll(100, TimeUnit.MILLISECONDS);
-				while (key != null) {
+				while (true) {
 					if (subscriber.isUnsubscribed())
 						return;
 					// we have a polled event, now we traverse it and
