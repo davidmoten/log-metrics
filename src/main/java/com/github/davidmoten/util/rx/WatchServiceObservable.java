@@ -8,7 +8,6 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -23,15 +22,8 @@ public class WatchServiceObservable {
 
 	public static Observable<WatchEvent<?>> from(final File file,
 			Kind<Path>... kinds) {
-		return watchService(file, kinds).flatMap(
-				new Func1<WatchService, Observable<WatchEvent<?>>>() {
-
-					@Override
-					public Observable<WatchEvent<?>> call(
-							WatchService watchService) {
-						return from(watchService);
-					}
-				}).filter(onlyRelatedTo(file));
+		return watchService(file, kinds).flatMap(TO_WATCH_EVENTS).filter(
+				onlyRelatedTo(file));
 	}
 
 	public static Observable<WatchService> watchService(final File file,
@@ -46,6 +38,7 @@ public class WatchServiceObservable {
 				else
 					path = Paths.get(file.getParentFile().toURI());
 				try {
+					System.out.println("creating watch service for " + path);
 					WatchService watchService = path.getFileSystem()
 							.newWatchService();
 					path.register(watchService, kinds);
@@ -63,6 +56,7 @@ public class WatchServiceObservable {
 
 			@Override
 			public Boolean call(WatchEvent<?> event) {
+				System.out.println("event=" + event);
 				if (file.isDirectory())
 					return true;
 				else {
@@ -92,24 +86,29 @@ public class WatchServiceObservable {
 				if (subscriber.isUnsubscribed())
 					return;
 				// get the first event before looping
-				WatchKey key = watchService.poll(100, TimeUnit.MILLISECONDS);
-				while (true) {
+				System.out.println("waiting for event");
+				WatchKey key = watchService.take();
+				System.out.println("key=" + key);
+				while (key != null) {
 					if (subscriber.isUnsubscribed())
 						return;
 					// we have a polled event, now we traverse it and
 					// receive all the states from it
-					for (WatchEvent<?> event : key.pollEvents()) {
-						if (subscriber.isUnsubscribed())
+					if (key != null) {
+						for (WatchEvent<?> event : key.pollEvents()) {
+							if (subscriber.isUnsubscribed())
+								return;
+							else
+								subscriber.onNext(event);
+						}
+
+						boolean valid = key.reset();
+						if (!valid) {
+							subscriber.onCompleted();
 							return;
-						else
-							subscriber.onNext(event);
+						}
 					}
-					boolean valid = key.reset();
-					if (!valid) {
-						subscriber.onCompleted();
-						return;
-					} else
-						key = watchService.poll(100, TimeUnit.MILLISECONDS);
+					key = watchService.take();
 				}
 			} catch (InterruptedException e) {
 				subscriber.onError(e);
@@ -117,5 +116,13 @@ public class WatchServiceObservable {
 		}
 
 	}
+
+	private static Func1<WatchService, Observable<WatchEvent<?>>> TO_WATCH_EVENTS = new Func1<WatchService, Observable<WatchEvent<?>>>() {
+
+		@Override
+		public Observable<WatchEvent<?>> call(WatchService watchService) {
+			return from(watchService);
+		}
+	};
 
 }
