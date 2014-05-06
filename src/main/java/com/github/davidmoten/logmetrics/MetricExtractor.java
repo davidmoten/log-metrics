@@ -4,6 +4,6 @@ import rx.Observable;
 
 public interface MetricExtractor {
 
-	Observable<? extends Metrics> extract(String line);
+    Observable<? extends Metrics> extract(String category, String line);
 
 }
