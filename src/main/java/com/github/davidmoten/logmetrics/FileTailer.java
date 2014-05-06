@@ -6,12 +6,12 @@ import java.nio.file.WatchEvent;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.github.davidmoten.util.rx.WatchServiceObservable;
-
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.StringObservable;
+
+import com.github.davidmoten.util.rx.WatchServiceObservable;
 
 public class FileTailer {
 
@@ -24,6 +24,7 @@ public class FileTailer {
 
     }
 
+    @SuppressWarnings("unchecked")
     public Observable<String> tail() {
 
         return WatchServiceObservable
