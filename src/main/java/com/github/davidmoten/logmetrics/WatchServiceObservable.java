@@ -22,11 +22,11 @@ public class WatchServiceObservable {
 
     public static Observable<WatchEvent<?>> from(final File file, Kind<Path>... kinds) {
         // TODO delay evaluation by putting in OnSubscribe
-        return events(file, kinds);
+        return events(file, kinds).filter(onlyRelatedTo(file));
     }
 
     private static Observable<WatchEvent<?>> events(final File file, Kind<Path>... kinds) {
-        Path path;
+        final Path path;
         if (file.isDirectory())
             path = Paths.get(file.toURI());
         else
@@ -34,7 +34,7 @@ public class WatchServiceObservable {
         try {
             WatchService watchService = path.getFileSystem().newWatchService();
             path.register(watchService, kinds);
-            return from(watchService).filter(onlyRelatedTo(file));
+            return from(watchService);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
