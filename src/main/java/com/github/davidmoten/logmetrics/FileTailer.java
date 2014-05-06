@@ -6,17 +6,19 @@ import java.nio.file.WatchEvent;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.github.davidmoten.util.rx.WatchServiceObservable;
+
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.StringObservable;
 
-public class Tailer {
+public class FileTailer {
 
     private final File file;
     private final AtomicLong skipBytes = new AtomicLong();
 
-    public Tailer(File file, long skipBytes) {
+    public FileTailer(File file, long skipBytes) {
         this.file = file;
         this.skipBytes.set(skipBytes);
 

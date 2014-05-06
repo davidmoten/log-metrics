@@ -10,13 +10,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-public class CustomFileReader extends Reader {
+class CustomFileReader extends Reader {
 
     private final FileReader reader;
     private final AtomicLong bytesRead = new AtomicLong(0);
     private final PublishSubject<Long> subject = PublishSubject.create();
 
-    public CustomFileReader(File file, long skipChars) {
+    CustomFileReader(File file, long skipChars) {
         try {
             reader = new FileReader(file);
             reader.skip(skipChars);
