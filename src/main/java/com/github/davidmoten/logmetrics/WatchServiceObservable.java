@@ -21,6 +21,7 @@ public class WatchServiceObservable {
     }
 
     public static Observable<WatchEvent<?>> from(final File file, Kind<Path>... kinds) {
+        // TODO delay evaluation by putting in OnSubscribe
         return events(file, kinds);
     }
 
