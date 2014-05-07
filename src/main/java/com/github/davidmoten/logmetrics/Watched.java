@@ -67,7 +67,7 @@ public class Watched {
 
                 @Override
                 public Observable<String> call(Long skipBytes) {
-                    return new FileTailer(file, skipBytes).tail();
+                    return new FileTailer(file, skipBytes).tail(500);
                 }
             });
         else

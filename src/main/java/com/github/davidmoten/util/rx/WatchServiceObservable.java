@@ -23,6 +23,19 @@ public class WatchServiceObservable {
         return Observable.create(new WatchServiceOnSubscribe(watchService));
     }
 
+    /**
+     * If file does not exist at subscribe time then is assumed to not be a
+     * directory. If the file is not a directory (bearing in mind the aforesaid
+     * assumption) then a {@link WatchService} is set up on its parent and
+     * {@link WatchEvent}s of the given kinds are filtered to concern the file
+     * in question. If the file is a directory then a {@link WatchService} is
+     * set up on the directory and all events are passed through of the given
+     * kinds.
+     * 
+     * @param file
+     * @param kinds
+     * @return
+     */
     @SafeVarargs
     public static Observable<WatchEvent<?>> from(final File file, Kind<Path>... kinds) {
         return watchService(file, kinds).flatMap(TO_WATCH_EVENTS).filter(onlyRelatedTo(file));
@@ -35,7 +48,7 @@ public class WatchServiceObservable {
             @Override
             public void call(Subscriber<? super WatchService> subscriber) {
                 final Path path;
-                if (file.isDirectory())
+                if (file.exists() && file.isDirectory())
                     path = Paths.get(file.toURI());
                 else
                     path = Paths.get(file.getParentFile().toURI());

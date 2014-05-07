@@ -1,5 +1,6 @@
 package com.github.davidmoten.util.rx;
 
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -54,12 +55,13 @@ public class WatchServiceObservableTest {
     }
 
     @Test
-    public void testEvents() throws InterruptedException, IOException {
+    public void testCreateAndModifyEventsForANonDirectoryFile() throws InterruptedException,
+            IOException {
         File file = new File("target/f");
         file.delete();
-        file.createNewFile();
         @SuppressWarnings("unchecked")
-        Observable<WatchEvent<?>> events = WatchServiceObservable.from(file, ENTRY_MODIFY);
+        Observable<WatchEvent<?>> events = WatchServiceObservable.from(file, ENTRY_CREATE,
+                ENTRY_MODIFY);
         final CountDownLatch latch = new CountDownLatch(1);
         final List<Kind> eventKinds = Mockito.mock(List.class);
         InOrder inOrder = Mockito.inOrder(eventKinds);
@@ -83,11 +85,14 @@ public class WatchServiceObservableTest {
                         latch.countDown();
                     }
                 });
+        // sleep long enough for WatchService to start
         Thread.sleep(200);
+        file.createNewFile();
         FileOutputStream fos = new FileOutputStream(file, true);
         fos.write("hello there".getBytes());
         fos.close();
         assertTrue(latch.await(30000, TimeUnit.MILLISECONDS));
+        inOrder.verify(eventKinds).add(StandardWatchEventKinds.ENTRY_CREATE);
         inOrder.verify(eventKinds).add(StandardWatchEventKinds.ENTRY_MODIFY);
         inOrder.verifyNoMoreInteractions();
         sub.unsubscribe();

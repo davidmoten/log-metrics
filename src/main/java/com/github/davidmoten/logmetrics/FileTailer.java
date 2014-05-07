@@ -25,13 +25,14 @@ public class FileTailer {
     }
 
     @SuppressWarnings("unchecked")
-    public Observable<String> tail() {
+    public Observable<String> tail(long sampleEveryMillis) {
 
         return WatchServiceObservable
         // watch the file for changes
-                .from(file, StandardWatchEventKinds.ENTRY_MODIFY)
+                .from(file, StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_MODIFY)
                 // emit a max of 1 event a second (the most recent)
-                .sample(1, TimeUnit.SECONDS)
+                .sample(sampleEveryMillis, TimeUnit.MILLISECONDS)
                 // emit any new lines
                 .concatMap(reportNewLines(file, skipBytes));
 
@@ -46,12 +47,13 @@ public class FileTailer {
                 if (file.length() > skipBytes.get()) {
                     final CustomFileReader reader = new CustomFileReader(file, skipBytes.get());
                     return reader.charsRead()
-                    // when reader closed increase skipBytes
+                            // when reader closed increase skipBytes
                             .doOnNext(increaseSkipBytes(skipBytes))
                             // doesn't contribute lines
-                            .ignoreElements().cast(String.class)
+                            .ignoreElements()
+                            .cast(String.class)
                             // read lines from the reader
-                            .startWith(StringObservable.from(reader));
+                            .startWith(StringObservable.split(StringObservable.from(reader), "\\n"));
                 } else
                     return Observable.empty();
             }
