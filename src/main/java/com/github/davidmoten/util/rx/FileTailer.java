@@ -1,5 +1,7 @@
 package com.github.davidmoten.util.rx;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.File;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
@@ -10,17 +12,22 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
+import com.google.common.base.Preconditions;
+
 public class FileTailer {
 
     private final File file;
     private final AtomicLong skipBytes = new AtomicLong();
 
     public FileTailer(File file, long skipBytes) {
+        Preconditions.checkNotNull(file);
         this.file = file;
         this.skipBytes.set(skipBytes);
     }
 
     public Observable<String> tail(long sampleEveryMillis) {
+        checkArgument(file.exists(), "file does not exist: " + file);
+        checkArgument(!file.isDirectory(), "file cannot be a directory: " + file);
 
         return WatchServiceObservable
         // watch the file for changes
