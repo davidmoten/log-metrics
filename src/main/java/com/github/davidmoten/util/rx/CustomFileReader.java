@@ -1,4 +1,4 @@
-package com.github.davidmoten.logmetrics;
+package com.github.davidmoten.util.rx;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,13 +10,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 
-class CustomFileReader extends Reader {
+public class CustomFileReader extends Reader {
 
     private final FileReader reader;
     private final AtomicLong bytesRead = new AtomicLong(0);
     private final PublishSubject<Long> subject = PublishSubject.create();
 
-    CustomFileReader(File file, long skipChars) {
+    public CustomFileReader(File file, long skipChars) {
         try {
             reader = new FileReader(file);
             reader.skip(skipChars);

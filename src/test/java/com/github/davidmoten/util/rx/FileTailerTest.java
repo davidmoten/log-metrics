@@ -14,8 +14,6 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
-import com.github.davidmoten.logmetrics.FileTailer;
-
 public class FileTailerTest {
 
     @Test

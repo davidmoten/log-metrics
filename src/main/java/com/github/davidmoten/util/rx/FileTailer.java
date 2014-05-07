@@ -1,4 +1,4 @@
-package com.github.davidmoten.logmetrics;
+package com.github.davidmoten.util.rx;
 
 import java.io.File;
 import java.nio.file.StandardWatchEventKinds;
@@ -9,9 +9,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.observables.StringObservable;
-
-import com.github.davidmoten.util.rx.WatchServiceObservable;
 
 public class FileTailer {
 
@@ -21,7 +18,6 @@ public class FileTailer {
     public FileTailer(File file, long skipBytes) {
         this.file = file;
         this.skipBytes.set(skipBytes);
-
     }
 
     public Observable<String> tail(long sampleEveryMillis) {
@@ -30,7 +26,7 @@ public class FileTailer {
         // watch the file for changes
                 .from(file, StandardWatchEventKinds.ENTRY_CREATE,
                         StandardWatchEventKinds.ENTRY_MODIFY)
-                // emit a max of 1 event a second (the most recent)
+                // emit a max of 1 event per sample period
                 .sample(sampleEveryMillis, TimeUnit.MILLISECONDS)
                 // emit any new lines
                 .concatMap(reportNewLines(file, skipBytes));
@@ -46,13 +42,12 @@ public class FileTailer {
                 if (file.length() > skipBytes.get()) {
                     final CustomFileReader reader = new CustomFileReader(file, skipBytes.get());
                     return reader.charsRead()
-                            // when reader closed increase skipBytes
+                    // when reader closed increase skipBytes
                             .doOnNext(increaseSkipBytes(skipBytes))
                             // doesn't contribute lines
-                            .ignoreElements()
-                            .cast(String.class)
+                            .ignoreElements().cast(String.class)
                             // read lines from the reader
-                            .startWith(StringObservable.split(StringObservable.from(reader), "\\n"));
+                            .startWith(IoObservable.lines(reader));
                 } else
                     return Observable.empty();
             }

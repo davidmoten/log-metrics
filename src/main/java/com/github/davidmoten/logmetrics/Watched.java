@@ -6,6 +6,8 @@ import rx.Observable;
 import rx.functions.Func1;
 import rx.observables.StringObservable;
 
+import com.github.davidmoten.util.rx.CustomFileReader;
+import com.github.davidmoten.util.rx.FileTailer;
 import com.google.common.base.Optional;
 
 public class Watched {
