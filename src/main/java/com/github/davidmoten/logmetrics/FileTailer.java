@@ -24,7 +24,6 @@ public class FileTailer {
 
     }
 
-    @SuppressWarnings("unchecked")
     public Observable<String> tail(long sampleEveryMillis) {
 
         return WatchServiceObservable
