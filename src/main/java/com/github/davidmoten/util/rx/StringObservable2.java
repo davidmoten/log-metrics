@@ -37,10 +37,9 @@ public class StringObservable2 {
                                     return Observable.just(list.get(0));
                             else
                                 return Observable.just(list.get(0));
-                        else if (terminator.equals(list.get(0)))
-                            return Observable.empty();
                         else
-                            throw new RuntimeException("unexpected");
+                            // must be just the terminator
+                            return Observable.empty();
                     }
                 });
     }
