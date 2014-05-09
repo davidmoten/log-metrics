@@ -63,7 +63,7 @@ public class FileObservable {
 	 */
 	@SafeVarargs
 	public static Observable<WatchEvent<?>> from(final File file,
-			Kind<Path>... kinds) {
+			Kind<?>... kinds) {
 		return watchService(file, kinds).flatMap(TO_WATCH_EVENTS).filter(
 				onlyRelatedTo(file));
 	}
@@ -78,7 +78,7 @@ public class FileObservable {
 	 */
 	@SafeVarargs
 	public static Observable<WatchService> watchService(final File file,
-			final Kind<Path>... kinds) {
+			final Kind<?>... kinds) {
 		return Observable.create(new OnSubscribe<WatchService>() {
 
 			@Override
@@ -189,7 +189,15 @@ public class FileObservable {
 					subscriber.onCompleted();
 				return null;
 			} catch (InterruptedException e) {
-				subscriber.onError(e);
+				// this case is problematic because unsubscribe may call
+				// Thread.interrupt() before calling the unsubscribe method of
+				// the Subscription. Thus at this point I don't know if a
+				// deliberate interrupt was called in which case I would call
+				// onComplete or if unsubscribe was called in which case I
+				// should not call anything. I prefer to take the more
+				// conservative approach and not call anything.
+				// TODO raise the issue with RxJava team in particular
+				// Subscriptions.from(Future) calling FutureTask.cancel(true)
 				try {
 					watchService.close();
 				} catch (IOException e1) {
