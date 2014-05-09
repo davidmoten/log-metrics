@@ -36,6 +36,12 @@ public class FileObservable {
         return new FileTailer(file, startPosition).tail(sampleTimeMs);
     }
 
+    /**
+     * Returns an {@link Observable} of {@link WatchEvent}s from a watchService.
+     * 
+     * @param watchService
+     * @return
+     */
     public static Observable<WatchEvent<?>> from(WatchService watchService) {
         return Observable.create(new WatchServiceOnSubscribe(watchService));
     }
@@ -58,17 +64,21 @@ public class FileObservable {
         return watchService(file, kinds).flatMap(TO_WATCH_EVENTS).filter(onlyRelatedTo(file));
     }
 
+    /**
+     * Creates a {@link WatchService} on subscribe for the given file and event
+     * kinds.
+     * 
+     * @param file
+     * @param kinds
+     * @return
+     */
     @SafeVarargs
     public static Observable<WatchService> watchService(final File file, final Kind<Path>... kinds) {
         return Observable.create(new OnSubscribe<WatchService>() {
 
             @Override
             public void call(Subscriber<? super WatchService> subscriber) {
-                final Path path;
-                if (file.exists() && file.isDirectory())
-                    path = Paths.get(file.toURI());
-                else
-                    path = Paths.get(file.getParentFile().toURI());
+                final Path path = getBasePath(file);
                 try {
                     WatchService watchService = path.getFileSystem().newWatchService();
                     path.register(watchService, kinds);
@@ -78,7 +88,17 @@ public class FileObservable {
                     subscriber.onError(e);
                 }
             }
+
         });
+    }
+
+    private static Path getBasePath(final File file) {
+        final Path path;
+        if (file.exists() && file.isDirectory())
+            path = Paths.get(file.toURI());
+        else
+            path = Paths.get(file.getParentFile().toURI());
+        return path;
     }
 
     private static Func1<WatchEvent<?>, Boolean> onlyRelatedTo(final File file) {
@@ -93,7 +113,9 @@ public class FileObservable {
                     Object context = event.context();
                     if (context != null && context instanceof Path) {
                         Path p = (Path) context;
-                        ok = p.toFile().getName().equals(file.getName());
+                        Path basePath = getBasePath(file);
+                        File pFile = new File(basePath.toFile(), p.toString());
+                        ok = pFile.getAbsolutePath().equals(file.getAbsolutePath());
                     } else
                         ok = false;
                 }
@@ -102,12 +124,12 @@ public class FileObservable {
         };
     }
 
-    public static class WatchServiceOnSubscribe implements OnSubscribe<WatchEvent<?>> {
+    static class WatchServiceOnSubscribe implements OnSubscribe<WatchEvent<?>> {
 
         private final WatchService watchService;
         private final AtomicBoolean closed = new AtomicBoolean(false);
 
-        public WatchServiceOnSubscribe(WatchService watchService) {
+        WatchServiceOnSubscribe(WatchService watchService) {
             this.watchService = watchService;
         }
 
