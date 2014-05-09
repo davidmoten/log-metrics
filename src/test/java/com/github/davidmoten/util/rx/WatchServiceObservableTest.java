@@ -91,6 +91,8 @@ public class WatchServiceObservableTest {
         FileOutputStream fos = new FileOutputStream(file, true);
         fos.write("hello there".getBytes());
         fos.close();
+        // give the WatchService time to register the change
+        Thread.sleep(100);
         assertTrue(latch.await(30000, TimeUnit.MILLISECONDS));
         inOrder.verify(eventKinds).add(StandardWatchEventKinds.ENTRY_CREATE);
         inOrder.verify(eventKinds).add(StandardWatchEventKinds.ENTRY_MODIFY);

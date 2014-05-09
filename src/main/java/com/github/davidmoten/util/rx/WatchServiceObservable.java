@@ -53,7 +53,6 @@ public class WatchServiceObservable {
                 else
                     path = Paths.get(file.getParentFile().toURI());
                 try {
-                    System.out.println("creating watch service for " + path);
                     WatchService watchService = path.getFileSystem().newWatchService();
                     path.register(watchService, kinds);
                     subscriber.onNext(watchService);
@@ -70,7 +69,6 @@ public class WatchServiceObservable {
 
             @Override
             public Boolean call(WatchEvent<?> event) {
-                System.out.println("event to filter=" + event);
                 final boolean ok;
                 if (file.isDirectory())
                     ok = true;
@@ -82,7 +80,6 @@ public class WatchServiceObservable {
                     } else
                         ok = false;
                 }
-                System.out.println("is ok=" + ok);
                 return ok;
             }
         };
@@ -111,7 +108,6 @@ public class WatchServiceObservable {
                 if (subscriber.isUnsubscribed())
                     return;
                 // get the first event before looping
-                System.out.println("waiting for event");
                 WatchKey key;
                 try {
                     key = watchService.take();
@@ -119,7 +115,6 @@ public class WatchServiceObservable {
                     // must have unsubscribed
                     return;
                 }
-                System.out.println("key=" + key);
                 while (key != null) {
                     if (subscriber.isUnsubscribed())
                         return;

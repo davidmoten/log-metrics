@@ -4,10 +4,9 @@ import java.io.File;
 
 import rx.Observable;
 import rx.functions.Func1;
-import rx.observables.StringObservable;
 
-import com.github.davidmoten.util.rx.CustomFileReader;
 import com.github.davidmoten.util.rx.FileTailer;
+import com.github.davidmoten.util.rx.IoObservable;
 import com.google.common.base.Optional;
 
 public class Watched {
@@ -17,22 +16,22 @@ public class Watched {
     private final boolean tail;
     private final MetricExtractor extractor;
     private final Optional<Long> startTime;
+    private final long sampleTimeMs;
 
     public Watched(String category, File file, boolean tail, MetricExtractor extractor,
-            Optional<Long> startTime) {
+            Optional<Long> startTime, long sampleTimeMs) {
         this.category = category;
         this.file = file;
         this.tail = tail;
         this.extractor = extractor;
         this.startTime = startTime;
+        this.sampleTimeMs = sampleTimeMs;
     }
 
     public Observable<? extends Metrics> watch() {
-        CustomFileReader reader = new CustomFileReader(file, 0);
-        return tail(file, reader.charsRead())
-        // read contents first
-                .startWith(StringObservable.from(reader))
-                // extract metrics
+
+        return tail(file)
+        // extract metrics
                 .flatMap(toMetrics(extractor, category))
                 // include only those lines after start time
                 .filter(after(startTime));
@@ -63,16 +62,12 @@ public class Watched {
         };
     }
 
-    private Observable<String> tail(final File file, Observable<Long> skipBytes) {
+    private Observable<String> tail(final File file) {
         if (tail)
-            return skipBytes.flatMap(new Func1<Long, Observable<String>>() {
-
-                @Override
-                public Observable<String> call(Long skipBytes) {
-                    return new FileTailer(file, skipBytes).tail(500);
-                }
-            });
+            return new FileTailer(file, 0).tail(sampleTimeMs);
         else
-            return Observable.empty();
+            return IoObservable
+            // read lines from the current position
+                    .lines(Util.createReader(file, 0));
     }
 }

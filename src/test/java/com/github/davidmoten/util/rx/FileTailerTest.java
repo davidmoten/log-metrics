@@ -17,16 +17,20 @@ import rx.schedulers.Schedulers;
 public class FileTailerTest {
 
     @Test
-    public void testFileTailing() throws InterruptedException {
+    public void testFileTailingFromStartOfFile() throws InterruptedException, IOException {
         File log = new File("target/test.log");
-        FileTailer tailer = new FileTailer(log, 0);
+        log.delete();
+        log.createNewFile();
+        append(log, "a0");
+        FileTailer tailer = FileTailer.builder().file(log).startPositionBytes(0).build();
+        @SuppressWarnings("unchecked")
         final List<String> list = Mockito.mock(List.class);
         InOrder inOrder = Mockito.inOrder(list);
         Subscription sub = tailer.tail(50).subscribeOn(Schedulers.io())
                 .subscribe(new Action1<String>() {
                     @Override
                     public void call(String line) {
-                        System.out.println("received: " + line);
+                        System.out.println("received: '" + line + "'");
                         list.add(line);
                     }
                 });
@@ -35,6 +39,7 @@ public class FileTailerTest {
         append(log, "a1");
         append(log, "a2");
         Thread.sleep(100);
+        inOrder.verify(list).add("a0");
         inOrder.verify(list).add("a1");
         inOrder.verify(list).add("a2");
         inOrder.verifyNoMoreInteractions();

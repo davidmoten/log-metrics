@@ -33,7 +33,7 @@ public class SampleTest {
         subject.onNext(3);
 
         // wait for at least one more sample window to have passed
-        Thread.sleep(200);
+        Thread.sleep(250);
 
         // check that sample only reported the last item (3) once
         InOrder inOrder = Mockito.inOrder(list);
