@@ -14,8 +14,6 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
-import com.google.common.base.Preconditions;
-
 public class FileTailer {
 
     private static enum Event {
@@ -26,34 +24,13 @@ public class FileTailer {
     private final AtomicLong currentPosition = new AtomicLong();
 
     public FileTailer(File file, long startPositionBytes) {
-        Preconditions.checkNotNull(file);
-        Preconditions.checkArgument(startPositionBytes >= 0,
-                "startPositionBytes must be non-negative");
+        if (file == null)
+            throw new NullPointerException("file parameter cannot be null");
+        if (startPositionBytes < 0)
+            throw new IllegalArgumentException("startPositionBytes must be non-negative");
+
         this.file = file;
         this.currentPosition.set(startPositionBytes);
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private File file;
-        private long startPositionBytes = 0;
-
-        public Builder file(File file) {
-            this.file = file;
-            return this;
-        }
-
-        public Builder startPositionBytes(long startPositionBytes) {
-            this.startPositionBytes = startPositionBytes;
-            return this;
-        }
-
-        public FileTailer build() {
-            return new FileTailer(file, startPositionBytes);
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -113,6 +90,29 @@ public class FileTailer {
                 firstTime = false;
             }
         };
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private File file;
+        private long startPositionBytes = 0;
+
+        public Builder file(File file) {
+            this.file = file;
+            return this;
+        }
+
+        public Builder startPositionBytes(long startPositionBytes) {
+            this.startPositionBytes = startPositionBytes;
+            return this;
+        }
+
+        public FileTailer build() {
+            return new FileTailer(file, startPositionBytes);
+        }
     }
 
 }

@@ -1,12 +1,14 @@
 package com.github.davidmoten.logmetrics;
 
+import static com.github.davidmoten.logmetrics.Util.createReader;
+import static com.github.davidmoten.util.rx.StringObservable2.lines;
+
 import java.io.File;
 
 import rx.Observable;
 import rx.functions.Func1;
 
 import com.github.davidmoten.util.rx.FileTailer;
-import com.github.davidmoten.util.rx.StringObservable2;
 import com.google.common.base.Optional;
 
 public class Watched {
@@ -66,8 +68,6 @@ public class Watched {
         if (tail)
             return new FileTailer(file, 0).tail(sampleTimeMs);
         else
-            return StringObservable2
-            // read lines from the current position
-                    .lines(Util.createReader(file, 0));
+            return lines(createReader(file, 0));
     }
 }

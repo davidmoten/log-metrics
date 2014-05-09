@@ -37,7 +37,8 @@ public class FileObservable {
     }
 
     /**
-     * Returns an {@link Observable} of {@link WatchEvent}s from a watchService.
+     * Returns an {@link Observable} of {@link WatchEvent}s from a
+     * {@link WatchService}.
      * 
      * @param watchService
      * @return
@@ -127,7 +128,7 @@ public class FileObservable {
     static class WatchServiceOnSubscribe implements OnSubscribe<WatchEvent<?>> {
 
         private final WatchService watchService;
-        private final AtomicBoolean closed = new AtomicBoolean(false);
+        private final AtomicBoolean unsubscribed = new AtomicBoolean(false);
 
         WatchServiceOnSubscribe(WatchService watchService) {
             this.watchService = watchService;
@@ -136,74 +137,84 @@ public class FileObservable {
         @Override
         public void call(Subscriber<? super WatchEvent<?>> subscriber) {
 
-            if (closed.get()) {
+            if (unsubscribed.get()) {
                 subscriber.onError(new RuntimeException(
                         "WatchService closed. You can only subscribe once to a WatchService."));
                 return;
             }
-            subscriber.add(createSubscriptionToCloseWatchService(watchService, closed));
+            subscriber.add(createSubscriptionToCloseWatchService(watchService, unsubscribed,
+                    subscriber));
 
-            try {
+            // get the first event before looping
+            WatchKey key = nextKey(subscriber);
+
+            while (key != null) {
                 if (subscriber.isUnsubscribed())
                     return;
-                // get the first event before looping
-                WatchKey key;
-                try {
-                    key = watchService.take();
-                } catch (ClosedWatchServiceException e) {
-                    // must have unsubscribed
-                    return;
-                }
-                while (key != null) {
+                // we have a polled event, now we traverse it and
+                // receive all the states from it
+                for (WatchEvent<?> event : key.pollEvents()) {
                     if (subscriber.isUnsubscribed())
                         return;
-                    // we have a polled event, now we traverse it and
-                    // receive all the states from it
-                    if (key != null) {
-                        for (WatchEvent<?> event : key.pollEvents()) {
-                            if (subscriber.isUnsubscribed())
-                                return;
-                            else
-                                subscriber.onNext(event);
-                        }
-
-                        boolean valid = key.reset();
-                        if (!valid) {
-                            subscriber.onCompleted();
-                            return;
-                        }
-                    }
-                    try {
-                        key = watchService.take();
-                    } catch (ClosedWatchServiceException e) {
-                        // must have unsubscribed
-                        return;
-                    }
+                    else
+                        subscriber.onNext(event);
                 }
+
+                boolean valid = key.reset();
+                if (!valid && !unsubscribed.get()) {
+                    subscriber.onCompleted();
+                    return;
+                } else if (!valid)
+                    return;
+
+                key = nextKey(subscriber);
+            }
+        }
+
+        private WatchKey nextKey(Subscriber<? super WatchEvent<?>> subscriber) {
+            try {
+                // this command blocks but unsubscribe close the watch
+                // service and interrupt it
+                return watchService.take();
+            } catch (ClosedWatchServiceException e) {
+                // must have unsubscribed
+                if (!unsubscribed.get())
+                    subscriber.onCompleted();
+                return null;
             } catch (InterruptedException e) {
-                // ignore
+                subscriber.onError(e);
+                try {
+                    watchService.close();
+                } catch (IOException e1) {
+
+                }
+                return null;
             }
         }
 
     }
 
     private static Subscription createSubscriptionToCloseWatchService(
-            final WatchService watchService, final AtomicBoolean closed) {
+            final WatchService watchService, final AtomicBoolean unsubscribed,
+            final Subscriber<? super WatchEvent<?>> subscriber) {
         return new Subscription() {
 
             @Override
             public void unsubscribe() {
                 try {
                     watchService.close();
-                    closed.set(true);
+                    unsubscribed.set(true);
+                } catch (ClosedWatchServiceException e) {
+                    // do nothing
+                    unsubscribed.set(true);
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    subscriber.onError(e);
                 }
             }
 
             @Override
             public boolean isUnsubscribed() {
-                return closed.get();
+                return unsubscribed.get();
             }
         };
     }

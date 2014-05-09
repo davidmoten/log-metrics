@@ -98,5 +98,6 @@ public class FileObservableTest {
         inOrder.verify(eventKinds).add(StandardWatchEventKinds.ENTRY_MODIFY);
         inOrder.verifyNoMoreInteractions();
         sub.unsubscribe();
+        Thread.sleep(100);
     }
 }
