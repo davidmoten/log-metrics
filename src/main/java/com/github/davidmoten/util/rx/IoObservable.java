@@ -13,12 +13,21 @@ import rx.observables.StringObservable;
 public class IoObservable {
 
     public static Observable<String> lines(Reader reader) {
-        return ignoreZeroLengthAtEnd(StringObservable.split(StringObservable.from(reader), "\\n"));
+        return StringObservable.split(StringObservable.from(reader), "\\n");
     }
 
-    public static Observable<String> ignoreZeroLengthAtEnd(Observable<String> source) {
+    public static Observable<String> trimEmpty(Observable<String> source) {
         final String terminator = UUID.randomUUID().toString() + UUID.randomUUID().toString();
-        return Observable.just(terminator).startWith(source).buffer(2, 1)
+        return Observable
+        // end with
+                .just(terminator)
+                // start with
+                .startWith(source)
+                // ignore empty string at start
+                .filter(ignoreEmptyStringAtStart())
+                // buffer with a window of 2 step 1
+                .buffer(2, 1)
+                // do not emit element before terminator if empty string
                 .concatMap(new Func1<List<String>, Observable<String>>() {
                     @Override
                     public Observable<String> call(List<String> list) {
@@ -36,6 +45,23 @@ public class IoObservable {
                             throw new RuntimeException("unexpected");
                     }
                 });
+    }
+
+    private static Func1<String, Boolean> ignoreEmptyStringAtStart() {
+        return new Func1<String, Boolean>() {
+            boolean firstTime = true;
+
+            @Override
+            public Boolean call(String s) {
+                boolean result;
+                if (firstTime)
+                    result = s == null || s.length() > 0;
+                else
+                    result = true;
+                firstTime = false;
+                return result;
+            }
+        };
     }
 
     public static Observable<WatchEvent<?>> from(WatchService watchService) {

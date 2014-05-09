@@ -1,14 +1,16 @@
 package com.github.davidmoten.util.rx;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mockito;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -23,9 +25,7 @@ public class FileTailerTest {
         log.createNewFile();
         append(log, "a0");
         FileTailer tailer = FileTailer.builder().file(log).startPositionBytes(0).build();
-        @SuppressWarnings("unchecked")
-        final List<String> list = Mockito.mock(List.class);
-        InOrder inOrder = Mockito.inOrder(list);
+        final List<String> list = new ArrayList<String>();
         Subscription sub = tailer.tail(50).subscribeOn(Schedulers.io())
                 .subscribe(new Action1<String>() {
                     @Override
@@ -34,15 +34,12 @@ public class FileTailerTest {
                         list.add(line);
                     }
                 });
-        // pause to setup WatchService
-        Thread.sleep(100);
+
+        Thread.sleep(500);
         append(log, "a1");
         append(log, "a2");
-        Thread.sleep(100);
-        inOrder.verify(list).add("a0");
-        inOrder.verify(list).add("a1");
-        inOrder.verify(list).add("a2");
-        inOrder.verifyNoMoreInteractions();
+        Thread.sleep(500);
+        assertEquals(Arrays.asList("a0", "a1", "a2"), list);
         sub.unsubscribe();
     }
 

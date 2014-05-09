@@ -13,23 +13,23 @@ import rx.Observable;
 public class IoObservableTest {
 
     @Test
-    public void testIgnoreZeroLengthAtEndDoesNothingIfNonZeroLengthAtEnd() {
-        List<String> list = IoObservable.ignoreZeroLengthAtEnd(Observable.from("a", "b")).toList()
+    public void testTrimEmptyhAtEndDoesNothingIfNonZeroLengthAtEnd() {
+        List<String> list = IoObservable.trimEmpty(Observable.from("a", "b")).toList()
                 .toBlockingObservable().single();
         assertEquals(Arrays.asList("a", "b"), list);
     }
 
     @Test
-    public void testIgnoreZeroLengthAtEndIgnoresLastIfZeroLengthAtEnd() {
-        List<String> list = IoObservable.ignoreZeroLengthAtEnd(Observable.from("a", "b", ""))
-                .toList().toBlockingObservable().single();
+    public void testTrimEmptyhAtEndIgnoresLastIfZeroLengthAtEnd() {
+        List<String> list = IoObservable.trimEmpty(Observable.from("a", "b", "")).toList()
+                .toBlockingObservable().single();
         assertEquals(Arrays.asList("a", "b"), list);
     }
 
     @Test
-    public void testIgnoreZeroLengthAtEndDoesNothingEmptySource() {
-        List<String> list = IoObservable.ignoreZeroLengthAtEnd(Observable.<String> empty())
-                .toList().toBlockingObservable().single();
+    public void testTrimEmptyhAtEndDoesNothingEmptySource() {
+        List<String> list = IoObservable.trimEmpty(Observable.<String> empty()).toList()
+                .toBlockingObservable().single();
         assertTrue(list.isEmpty());
     }
 

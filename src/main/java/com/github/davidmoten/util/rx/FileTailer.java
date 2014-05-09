@@ -1,7 +1,8 @@
 package com.github.davidmoten.util.rx;
 
-import static com.github.davidmoten.util.rx.IoObservable.ignoreZeroLengthAtEnd;
+import static com.github.davidmoten.logmetrics.Util.createReader;
 import static com.github.davidmoten.util.rx.IoObservable.lines;
+import static com.github.davidmoten.util.rx.IoObservable.trimEmpty;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.File;
@@ -14,7 +15,6 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
-import com.github.davidmoten.logmetrics.Util;
 import com.google.common.base.Preconditions;
 
 public class FileTailer {
@@ -61,11 +61,16 @@ public class FileTailer {
         checkArgument(file.exists(), "file does not exist: " + file);
         checkArgument(!file.isDirectory(), "file cannot be a directory: " + file);
 
-        return WatchServiceObservable
-        // watch the file for changes
-                .from(file, StandardWatchEventKinds.ENTRY_CREATE,
-                        StandardWatchEventKinds.ENTRY_MODIFY)
-                // map to singleton object
+        return tail(
+                WatchServiceObservable
+                // watch the file for changes
+                        .from(file, StandardWatchEventKinds.ENTRY_CREATE,
+                                StandardWatchEventKinds.ENTRY_MODIFY), sampleEveryMillis);
+    }
+
+    Observable<String> tail(Observable<WatchEvent<?>> events, long sampleEveryMillis) {
+        return events
+        // map to singleton object
                 .map(TO_EVENT)
                 // get lines once on subscription so we tail the lines in the
                 // file at startup
@@ -90,8 +95,7 @@ public class FileTailer {
             @Override
             public Observable<String> call(Event event) {
                 if (file.length() > currentPosition.get()) {
-                    return ignoreZeroLengthAtEnd(
-                            lines(Util.createReader(file, currentPosition.get())))
+                    return trimEmpty(lines(createReader(file, currentPosition.get())))
                     // as each line produced increment the current
                     // position with its length plus one for the new
                     // line separator
