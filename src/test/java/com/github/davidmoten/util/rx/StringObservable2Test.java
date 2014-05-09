@@ -10,25 +10,25 @@ import org.junit.Test;
 
 import rx.Observable;
 
-public class IoObservableTest {
+public class StringObservable2Test {
 
     @Test
-    public void testTrimEmptyhAtEndDoesNothingIfNonZeroLengthAtEnd() {
-        List<String> list = IoObservable.trimEmpty(Observable.from("a", "b")).toList()
+    public void testTrimEmptyDoesNothingIfNonZeroLengthAtEnd() {
+        List<String> list = StringObservable2.trimEmpty(Observable.from("a", "b")).toList()
                 .toBlockingObservable().single();
         assertEquals(Arrays.asList("a", "b"), list);
     }
 
     @Test
-    public void testTrimEmptyhAtEndIgnoresLastIfZeroLengthAtEnd() {
-        List<String> list = IoObservable.trimEmpty(Observable.from("a", "b", "")).toList()
+    public void testTrimEmptyIgnoresLastIfZeroLengthAtEnd() {
+        List<String> list = StringObservable2.trimEmpty(Observable.from("a", "b", "")).toList()
                 .toBlockingObservable().single();
         assertEquals(Arrays.asList("a", "b"), list);
     }
 
     @Test
-    public void testTrimEmptyhAtEndDoesNothingEmptySource() {
-        List<String> list = IoObservable.trimEmpty(Observable.<String> empty()).toList()
+    public void testTrimEmptyDoesNothingEmptySource() {
+        List<String> list = StringObservable2.trimEmpty(Observable.<String> empty()).toList()
                 .toBlockingObservable().single();
         assertTrue(list.isEmpty());
     }

@@ -1,8 +1,6 @@
 package com.github.davidmoten.util.rx;
 
 import java.io.Reader;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchService;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,7 +8,7 @@ import rx.Observable;
 import rx.functions.Func1;
 import rx.observables.StringObservable;
 
-public class IoObservable {
+public class StringObservable2 {
 
     public static Observable<String> lines(Reader reader) {
         return StringObservable.split(StringObservable.from(reader), "\\n");
@@ -62,10 +60,6 @@ public class IoObservable {
                 return result;
             }
         };
-    }
-
-    public static Observable<WatchEvent<?>> from(WatchService watchService) {
-        return WatchServiceObservable.from(watchService);
     }
 
 }

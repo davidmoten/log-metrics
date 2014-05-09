@@ -16,6 +16,7 @@ public class SampleTest {
     @Test
     public void testSampleDoesNotRepeatEmissions() throws InterruptedException {
         PublishSubject<Integer> subject = PublishSubject.create();
+        @SuppressWarnings("unchecked")
         final List<Integer> list = Mockito.mock(List.class);
         Subscription sub = subject
         // sample

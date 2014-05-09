@@ -17,7 +17,24 @@ import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Func1;
 
-public class WatchServiceObservable {
+public class FileObservable {
+
+    /**
+     * Returns an {@link Observable} that uses NIO WatchService (and a dedicated
+     * thread) to push modify events to an observable that reads and reports new
+     * lines to a subscriber. The NIO WatchService events are sampled according
+     * to <code>sampleTimeMs</code> so that lots of discrete activity on a file
+     * (for example a log file with very frequent entries) does not prompt an
+     * inordinate number of file reads to pick up changes.
+     * 
+     * @param file
+     * @param startPosition
+     * @param sampleTimeMs
+     * @return
+     */
+    public static Observable<String> tailFile(File file, long startPosition, long sampleTimeMs) {
+        return new FileTailer(file, startPosition).tail(sampleTimeMs);
+    }
 
     public static Observable<WatchEvent<?>> from(WatchService watchService) {
         return Observable.create(new WatchServiceOnSubscribe(watchService));
@@ -176,5 +193,4 @@ public class WatchServiceObservable {
             return from(watchService);
         }
     };
-
 }

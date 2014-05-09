@@ -24,13 +24,13 @@ import rx.Observer;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
 
-public class WatchServiceObservableTest {
+public class FileObservableTest {
 
     @Test
     public void testNoEventsThrownIfFileDoesNotExist() throws InterruptedException {
         File file = new File("target/does-not-exist");
         @SuppressWarnings("unchecked")
-        Observable<WatchEvent<?>> events = WatchServiceObservable.from(file, ENTRY_MODIFY);
+        Observable<WatchEvent<?>> events = FileObservable.from(file, ENTRY_MODIFY);
         final CountDownLatch latch = new CountDownLatch(1);
         Subscription sub = events.subscribeOn(Schedulers.io()).subscribe(
                 new Observer<WatchEvent<?>>() {
@@ -60,10 +60,10 @@ public class WatchServiceObservableTest {
         File file = new File("target/f");
         file.delete();
         @SuppressWarnings("unchecked")
-        Observable<WatchEvent<?>> events = WatchServiceObservable.from(file, ENTRY_CREATE,
-                ENTRY_MODIFY);
+        Observable<WatchEvent<?>> events = FileObservable.from(file, ENTRY_CREATE, ENTRY_MODIFY);
         final CountDownLatch latch = new CountDownLatch(1);
-        final List<Kind> eventKinds = Mockito.mock(List.class);
+        @SuppressWarnings("unchecked")
+        final List<Kind<?>> eventKinds = Mockito.mock(List.class);
         InOrder inOrder = Mockito.inOrder(eventKinds);
         Subscription sub = events.subscribeOn(Schedulers.io()).subscribe(
                 new Observer<WatchEvent<?>>() {
@@ -86,7 +86,7 @@ public class WatchServiceObservableTest {
                     }
                 });
         // sleep long enough for WatchService to start
-        Thread.sleep(200);
+        Thread.sleep(1000);
         file.createNewFile();
         FileOutputStream fos = new FileOutputStream(file, true);
         fos.write("hello there".getBytes());

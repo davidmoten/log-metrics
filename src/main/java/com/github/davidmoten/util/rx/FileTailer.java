@@ -1,9 +1,8 @@
 package com.github.davidmoten.util.rx;
 
 import static com.github.davidmoten.logmetrics.Util.createReader;
-import static com.github.davidmoten.util.rx.IoObservable.lines;
-import static com.github.davidmoten.util.rx.IoObservable.trimEmpty;
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.github.davidmoten.util.rx.StringObservable2.lines;
+import static com.github.davidmoten.util.rx.StringObservable2.trimEmpty;
 
 import java.io.File;
 import java.nio.file.StandardWatchEventKinds;
@@ -57,14 +56,15 @@ public class FileTailer {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public Observable<String> tail(long sampleEveryMillis) {
-        checkArgument(file.exists(), "file does not exist: " + file);
-        checkArgument(!file.isDirectory(), "file cannot be a directory: " + file);
 
-        return WatchServiceObservable
+        return FileObservable
         // watch the file for changes
                 .from(file, StandardWatchEventKinds.ENTRY_CREATE,
-                        StandardWatchEventKinds.ENTRY_MODIFY).map(TO_EVENT)
+                        StandardWatchEventKinds.ENTRY_MODIFY)
+                // don't care about the event details, just that there is one
+                .map(TO_EVENT)
                 // get lines once on subscription so we tail the lines in the
                 // file at startup
                 .startWith(Event.EVENT)

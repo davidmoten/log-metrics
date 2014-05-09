@@ -6,7 +6,7 @@ import rx.Observable;
 import rx.functions.Func1;
 
 import com.github.davidmoten.util.rx.FileTailer;
-import com.github.davidmoten.util.rx.IoObservable;
+import com.github.davidmoten.util.rx.StringObservable2;
 import com.google.common.base.Optional;
 
 public class Watched {
@@ -66,7 +66,7 @@ public class Watched {
         if (tail)
             return new FileTailer(file, 0).tail(sampleTimeMs);
         else
-            return IoObservable
+            return StringObservable2
             // read lines from the current position
                     .lines(Util.createReader(file, 0));
     }
