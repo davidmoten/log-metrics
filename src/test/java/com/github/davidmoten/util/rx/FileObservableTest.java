@@ -32,7 +32,6 @@ public class FileObservableTest {
 	public void testNoEventsThrownIfFileDoesNotExist()
 			throws InterruptedException {
 		File file = new File("target/does-not-exist");
-		@SuppressWarnings("unchecked")
 		Observable<WatchEvent<?>> events = FileObservable.from(file,
 				ENTRY_MODIFY);
 		final CountDownLatch latch = new CountDownLatch(1);

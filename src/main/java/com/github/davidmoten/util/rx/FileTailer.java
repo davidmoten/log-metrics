@@ -34,7 +34,6 @@ public class FileTailer {
 		this.currentPosition.set(startPositionBytes);
 	}
 
-	@SuppressWarnings("unchecked")
 	public Observable<String> tail(long sampleEveryMillis) {
 
 		return FileObservable
