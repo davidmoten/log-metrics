@@ -61,17 +61,10 @@ public class FileTailer {
         checkArgument(file.exists(), "file does not exist: " + file);
         checkArgument(!file.isDirectory(), "file cannot be a directory: " + file);
 
-        return tail(
-                WatchServiceObservable
-                // watch the file for changes
-                        .from(file, StandardWatchEventKinds.ENTRY_CREATE,
-                                StandardWatchEventKinds.ENTRY_MODIFY), sampleEveryMillis);
-    }
-
-    Observable<String> tail(Observable<WatchEvent<?>> events, long sampleEveryMillis) {
-        return events
-        // map to singleton object
-                .map(TO_EVENT)
+        return WatchServiceObservable
+        // watch the file for changes
+                .from(file, StandardWatchEventKinds.ENTRY_CREATE,
+                        StandardWatchEventKinds.ENTRY_MODIFY).map(TO_EVENT)
                 // get lines once on subscription so we tail the lines in the
                 // file at startup
                 .startWith(Event.EVENT)
