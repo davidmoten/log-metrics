@@ -239,7 +239,8 @@ public final class FileObservable {
 					// do nothing
 					subscribed.set(false);
 				} catch (IOException e) {
-					subscriber.onError(e);
+					// do nothing
+					subscribed.set(false);
 				}
 			}
 
