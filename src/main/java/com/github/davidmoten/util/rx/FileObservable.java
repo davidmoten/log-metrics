@@ -17,7 +17,10 @@ import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Func1;
 
-public class FileObservable {
+/**
+ * Observable utility methods related to {@link File}.
+ */
+public final class FileObservable {
 
 	/**
 	 * Returns an {@link Observable} that uses NIO WatchService (and a dedicated
@@ -107,15 +110,25 @@ public class FileObservable {
 		return path;
 	}
 
+	/**
+	 * Returns true if and only if the path corresponding to a WatchEvent
+	 * represents the given file. This will be the case for Create, Modify,
+	 * Delete events.
+	 * 
+	 * @param file
+	 * @return
+	 */
 	private static Func1<WatchEvent<?>, Boolean> onlyRelatedTo(final File file) {
 		return new Func1<WatchEvent<?>, Boolean>() {
 
 			@Override
 			public Boolean call(WatchEvent<?> event) {
+
 				final boolean ok;
 				if (file.isDirectory())
 					ok = true;
 				else {
+					// TODO what happens for Overflow?
 					Object context = event.context();
 					if (context != null && context instanceof Path) {
 						Path p = (Path) context;
