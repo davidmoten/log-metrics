@@ -1,14 +1,14 @@
 package com.github.davidmoten.logmetrics;
 
 import static com.github.davidmoten.logmetrics.Util.createReader;
-import static com.github.davidmoten.util.rx.StringObservable2.lines;
+import static com.github.davidmoten.rx.StringObservable2.lines;
 
 import java.io.File;
 
 import rx.Observable;
 import rx.functions.Func1;
 
-import com.github.davidmoten.util.rx.FileTailer;
+import com.github.davidmoten.rx.FileTailer;
 import com.google.common.base.Optional;
 
 public class Watched {
