@@ -24,9 +24,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <guava.version>17.0</guava.version>
-        <maven.compiler.target>1.6</maven.compiler.target>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.7</slf4j.version>
-        <rxjava.version>0.18.3</rxjava.version>
+        <rxjava.version>0.19.1</rxjava.version>
 
         <cobertura.version>2.6</cobertura.version>
         <checkstyle.version>2.11</checkstyle.version>
@@ -104,7 +104,7 @@
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-file</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
 
         <dependency>
