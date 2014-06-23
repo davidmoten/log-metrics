@@ -42,25 +42,26 @@ public class Watched {
 
 	}
 
-	private Func1<String, ? extends Observable<? extends Metrics>> toMetrics(
+	private Func1<String, Observable<? extends Metrics>> toMetrics(
 			final MetricExtractor extractor, final String category) {
 		return line -> extractor.extract(category, line);
 	}
 
-	private Func1<? super Metrics, Boolean> after(final Optional<Long> startTime) {
+	private Func1<Metrics, Boolean> after(final Optional<Long> startTime) {
 		return metrics -> {
 			if (startTime.isPresent()) {
 				return metrics.getTimestamp() >= startTime.get();
 			} else
 				return true;
 		};
-	}
+	};
 
 	private Observable<String> tail(final File file) {
 		if (tail)
 			return FileObservable.tailTextFile(file, 0, 1000,
 					Charset.forName("UTF-8"));
 		else
+			// TODO use Observable.using
 			return StringObservable.split(
 					StringObservable.from(createReader(file, 0)), "\n");
 	}
