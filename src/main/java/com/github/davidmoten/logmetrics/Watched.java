@@ -44,25 +44,15 @@ public class Watched {
 
 	private Func1<String, ? extends Observable<? extends Metrics>> toMetrics(
 			final MetricExtractor extractor, final String category) {
-		return new Func1<String, Observable<? extends Metrics>>() {
-
-			@Override
-			public Observable<? extends Metrics> call(String line) {
-				return extractor.extract(category, line);
-			}
-		};
+		return line -> extractor.extract(category, line);
 	}
 
 	private Func1<? super Metrics, Boolean> after(final Optional<Long> startTime) {
-		return new Func1<Metrics, Boolean>() {
-
-			@Override
-			public Boolean call(Metrics metrics) {
-				if (startTime.isPresent()) {
-					return metrics.getTimestamp() >= startTime.get();
-				} else
-					return true;
-			}
+		return metrics -> {
+			if (startTime.isPresent()) {
+				return metrics.getTimestamp() >= startTime.get();
+			} else
+				return true;
 		};
 	}
 
