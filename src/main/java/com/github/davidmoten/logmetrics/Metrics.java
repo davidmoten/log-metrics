@@ -30,4 +30,19 @@ public class Metrics {
         return category;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Metrics [timestamp=");
+        builder.append(timestamp);
+        builder.append(", level=");
+        builder.append(level);
+        builder.append(", line=");
+        builder.append(line);
+        builder.append(", category=");
+        builder.append(category);
+        builder.append("]");
+        return builder.toString();
+    }
+
 }

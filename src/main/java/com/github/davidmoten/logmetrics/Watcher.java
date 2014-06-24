@@ -6,9 +6,9 @@ import rx.Observable;
 
 public class Watcher {
 
-	private final List<Watched> watched;
+	private final List<Watch> watched;
 
-	public Watcher(List<Watched> watched) {
+	public Watcher(List<Watch> watched) {
 		this.watched = watched;
 	}
 
