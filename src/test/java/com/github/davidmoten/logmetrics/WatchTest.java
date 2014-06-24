@@ -32,6 +32,7 @@ public class WatchTest {
                 .extractor(extractor).build().watch();
 
         Observable<Metrics> stream = stream1.subscribeOn(Schedulers.newThread()).mergeWith(stream2);
+
         stream.lift(Logging.logger().showValue().log()).subscribeOn(Schedulers.newThread())
                 .subscribe();
 

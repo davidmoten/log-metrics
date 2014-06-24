@@ -20,9 +20,10 @@ public class Watch {
     private final MetricExtractor extractor;
     private final Optional<Long> startTime;
     private final long sampleTimeMs;
+    private final Optional<Observable<?>> events;
 
     private Watch(String category, File file, boolean tail, MetricExtractor extractor,
-            Optional<Long> startTime, long sampleTimeMs) {
+            Optional<Long> startTime, long sampleTimeMs, Optional<Observable<?>> events) {
         if (file == null)
             throw new NullPointerException("file parameter cannot be null");
         if (extractor == null)
@@ -33,6 +34,7 @@ public class Watch {
         this.extractor = extractor;
         this.startTime = startTime;
         this.sampleTimeMs = sampleTimeMs;
+        this.events = events;
     }
 
     public static Builder builder() {
@@ -47,6 +49,7 @@ public class Watch {
         private MetricExtractor extractor;
         private Optional<Long> startTime = Optional.absent();
         private long sampleTimeMs = 1000;
+        private Optional<Observable<?>> events = Optional.absent();
 
         private Builder() {
         }
@@ -76,19 +79,34 @@ public class Watch {
             return this;
         }
 
+        public Builder startTime(long startTime) {
+            this.startTime = Optional.of(startTime);
+            return this;
+        }
+
         public Builder sampleTimeMs(long sampleTimeMs) {
             this.sampleTimeMs = sampleTimeMs;
             return this;
         }
 
+        public Builder events(Observable<?> events) {
+            this.events = Optional.of(events);
+            return this;
+        }
+
+        public Builder events(Optional<Observable<?>> events) {
+            this.events = events;
+            return this;
+        }
+
         public Watch build() {
-            return new Watch(category, file, tail, extractor, startTime, sampleTimeMs);
+            return new Watch(category, file, tail, extractor, startTime, sampleTimeMs, events);
         }
     }
 
     public Observable<Metrics> watch() {
 
-        return tail(file)
+        return tail()
         // extract metrics
                 .flatMap(toMetrics(extractor, category))
                 // include only those lines after start time
@@ -110,8 +128,10 @@ public class Watch {
         };
     };
 
-    private Observable<String> tail(final File file) {
-        if (tail)
+    private Observable<String> tail() {
+        if (tail && events.isPresent())
+            return FileObservable.tailTextFile(file, 0, Charset.forName("UTF-8"), events.get());
+        else if (tail)
             return FileObservable.tailTextFile(file, 0, sampleTimeMs, Charset.forName("UTF-8"));
         else
             // TODO use Observable.using
