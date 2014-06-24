@@ -6,14 +6,14 @@ import rx.Observable;
 
 public class Watcher {
 
-	private final List<Watch> watched;
+	private final List<FileWatch> watched;
 
-	public Watcher(List<Watch> watched) {
+	public Watcher(List<FileWatch> watched) {
 		this.watched = watched;
 	}
 
 	public Observable<Metrics> run() {
-		return Observable.from(watched).flatMap(w -> w.watch());
+		return Observable.from(watched).flatMap(w -> w.metrics());
 	}
 
 }

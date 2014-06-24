@@ -25,16 +25,12 @@ public class WatchTest {
         MetricExtractor extractor = (category, line) -> Observable.just(new Metrics(category,
                 System.currentTimeMillis(), Level.INFO, line));
 
-        Observable<Metrics> stream1 = Watch.builder().file(log).category("cat1")
-                .extractor(extractor).build().watch();
+        Watch watch1 = FileWatch.builder().file(log).category("cat1").extractor(extractor).build();
+        Watch watch2 = FileWatch.builder().file(log2).category("cat2").extractor(extractor).build();
 
-        Observable<Metrics> stream2 = Watch.builder().file(log2).category("cat2")
-                .extractor(extractor).build().watch();
+        Watch watch = WatchUtil.merge(watch1, watch2);
 
-        Observable<Metrics> stream = stream1.subscribeOn(Schedulers.newThread()).mergeWith(stream2);
-
-        stream.lift(Logging.logger().showValue().log()).subscribeOn(Schedulers.newThread())
-                .subscribe();
+        watch.metrics().lift(Logging.logger().showValue().log()).subscribe();
 
         PrintWriter out = new PrintWriter(log);
         PrintWriter out2 = new PrintWriter(log2);
