@@ -86,7 +86,7 @@ public class Watch {
         }
     }
 
-    public Observable<? extends Metrics> watch() {
+    public Observable<Metrics> watch() {
 
         return tail(file)
         // extract metrics
