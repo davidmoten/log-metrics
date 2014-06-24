@@ -3,6 +3,7 @@ package com.github.davidmoten.logmetrics;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -21,13 +22,13 @@ public class WatchTest {
         File log = new File("target/log");
         log.delete();
         Watch.builder().file(log).extractor(extractor).build().watch()
-                .lift(Logging.logger().showValue().log()).take(5)
-                .subscribeOn(Schedulers.computation()).subscribe();
+                .lift(Logging.logger().showValue().log()).subscribeOn(Schedulers.computation())
+                .subscribe();
         PrintWriter out = new PrintWriter(log);
-        while (true) {
-            out.println("hi there from Dave at " + System.currentTimeMillis());
+        Observable.interval(300, TimeUnit.MILLISECONDS).doOnNext(n -> {
+            out.println("hi from Dave at " + n);
             out.flush();
-            Thread.sleep(300);
-        }
+        }).observeOn(Schedulers.trampoline()).subscribe();
+        Thread.sleep(30000);
     }
 }
