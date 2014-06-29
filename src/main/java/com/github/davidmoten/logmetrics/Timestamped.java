@@ -39,7 +39,7 @@ public class Timestamped<T> implements Comparable<Timestamped<T>> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Timestamped<T> other = (Timestamped<T>) obj;
+		Timestamped<?> other = (Timestamped<?>) obj;
 		if (time != other.time)
 			return false;
 		if (value == null) {
