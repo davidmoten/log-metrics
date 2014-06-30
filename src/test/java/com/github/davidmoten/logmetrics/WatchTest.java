@@ -22,8 +22,10 @@ public class WatchTest {
 	File log2 = new File("target/log2");
 	log2.delete();
 
-	LineExtractor extractor = (category, line) -> Observable.just(new Line(
-		category, System.currentTimeMillis(), Level.INFO, line));
+	LineExtractor extractor = (category, line) -> Observable.just(Line
+		.builder().category(category)
+		.timestamp(System.currentTimeMillis()).level(Level.INFO)
+		.line(line).build());
 
 	Watch watch1 = FileWatch.builder().file(log).category("cat1")
 		.extractor(extractor).build();
@@ -46,12 +48,13 @@ public class WatchTest {
 	out2.close();
     }
 
-    @Test
+//    @Test
     public void test2() throws InterruptedException, IOException {
 
-	LineExtractor extractor = (category, line) -> Observable.just(new Line(
-		category, System.currentTimeMillis(), Level.INFO, line));
-
+	LineExtractor extractor = (category, line) -> Observable.just(Line
+		.builder().category(category)
+		.timestamp(System.currentTimeMillis()).level(Level.INFO)
+		.line(line).build());
 	File logs = new File(System.getProperty("user.home") + "/temp/logs");
 	File[] files = logs.listFiles();
 	Watch watch = () -> Observable.empty();
