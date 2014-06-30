@@ -22,120 +22,125 @@ public class FileWatch implements Watch {
     private final long sampleTimeMs;
     private final Optional<Observable<?>> events;
 
-    private FileWatch(String category, File file, boolean tail, LineExtractor extractor,
-            Optional<Long> startTime, long sampleTimeMs, Optional<Observable<?>> events) {
-        if (file == null)
-            throw new NullPointerException("file parameter cannot be null");
-        if (extractor == null)
-            throw new NullPointerException("extractor parameter cannot be null");
-        this.category = category;
-        this.file = file;
-        this.tail = tail;
-        this.extractor = extractor;
-        this.startTime = startTime;
-        this.sampleTimeMs = sampleTimeMs;
-        this.events = events;
+    private FileWatch(String category, File file, boolean tail,
+	    LineExtractor extractor, Optional<Long> startTime,
+	    long sampleTimeMs, Optional<Observable<?>> events) {
+	if (file == null)
+	    throw new NullPointerException("file parameter cannot be null");
+	if (extractor == null)
+	    throw new NullPointerException("extractor parameter cannot be null");
+	this.category = category;
+	this.file = file;
+	this.tail = tail;
+	this.extractor = extractor;
+	this.startTime = startTime;
+	this.sampleTimeMs = sampleTimeMs;
+	this.events = events;
     }
 
     public static Builder builder() {
-        return new Builder();
+	return new Builder();
     }
 
     public static class Builder {
 
-        private String category = "General";
-        private File file;
-        private boolean tail = true;
-        private LineExtractor extractor;
-        private Optional<Long> startTime = Optional.absent();
-        private long sampleTimeMs = 1000;
-        private Optional<Observable<?>> events = Optional.absent();
+	private String category = "General";
+	private File file;
+	private boolean tail = true;
+	private LineExtractor extractor;
+	private Optional<Long> startTime = Optional.absent();
+	private long sampleTimeMs = 1000;
+	private Optional<Observable<?>> events = Optional.absent();
 
-        private Builder() {
-        }
+	private Builder() {
+	}
 
-        public Builder category(String category) {
-            this.category = category;
-            return this;
-        }
+	public Builder category(String category) {
+	    this.category = category;
+	    return this;
+	}
 
-        public Builder file(File file) {
-            this.file = file;
-            return this;
-        }
+	public Builder file(File file) {
+	    this.file = file;
+	    return this;
+	}
 
-        public Builder tail(boolean tail) {
-            this.tail = tail;
-            return this;
-        }
+	public Builder tail(boolean tail) {
+	    this.tail = tail;
+	    return this;
+	}
 
-        public Builder extractor(LineExtractor extractor) {
-            this.extractor = extractor;
-            return this;
-        }
+	public Builder extractor(LineExtractor extractor) {
+	    this.extractor = extractor;
+	    return this;
+	}
 
-        public Builder startTime(Optional<Long> startTime) {
-            this.startTime = startTime;
-            return this;
-        }
+	public Builder startTime(Optional<Long> startTime) {
+	    this.startTime = startTime;
+	    return this;
+	}
 
-        public Builder startTime(long startTime) {
-            this.startTime = Optional.of(startTime);
-            return this;
-        }
+	public Builder startTime(long startTime) {
+	    this.startTime = Optional.of(startTime);
+	    return this;
+	}
 
-        public Builder sampleTimeMs(long sampleTimeMs) {
-            this.sampleTimeMs = sampleTimeMs;
-            return this;
-        }
+	public Builder sampleTimeMs(long sampleTimeMs) {
+	    this.sampleTimeMs = sampleTimeMs;
+	    return this;
+	}
 
-        public Builder events(Observable<?> events) {
-            this.events = Optional.of(events);
-            return this;
-        }
+	public Builder events(Observable<?> events) {
+	    this.events = Optional.of(events);
+	    return this;
+	}
 
-        public Builder events(Optional<Observable<?>> events) {
-            this.events = events;
-            return this;
-        }
+	public Builder events(Optional<Observable<?>> events) {
+	    this.events = events;
+	    return this;
+	}
 
-        public FileWatch build() {
-            return new FileWatch(category, file, tail, extractor, startTime, sampleTimeMs, events);
-        }
+	public FileWatch build() {
+	    return new FileWatch(category, file, tail, extractor, startTime,
+		    sampleTimeMs, events);
+	}
     }
 
     @Override
     public Observable<Line> lines() {
 
-        return tail()
-        // extract metrics
-                .flatMap(toMetrics(extractor, category))
-                // include only those lines after start time
-                .filter(after(startTime));
+	return tail()
+	// extract metrics
+		.flatMap(toMetrics(extractor, category))
+		// include only those lines after start time
+		.filter(after(startTime));
 
     }
 
-    private Func1<String, Observable<? extends Line>> toMetrics(final LineExtractor extractor,
-            final String category) {
-        return line -> extractor.extract(category, line);
+    private Func1<String, Observable<? extends Line>> toMetrics(
+	    final LineExtractor extractor, final String category) {
+	return line -> extractor.extract(category, line);
     }
 
     private Func1<Line, Boolean> after(final Optional<Long> startTime) {
-        return metrics -> {
-            if (startTime.isPresent()) {
-                return metrics.getTimestamp() >= startTime.get();
-            } else
-                return true;
-        };
+	return metrics -> {
+	    if (startTime.isPresent()) {
+		return metrics.getTimestamp() >= startTime.get();
+	    } else
+		return true;
+	};
     };
 
     private Observable<String> tail() {
-        if (tail && events.isPresent())
-            return FileObservable.tailTextFile(file, 0, Charset.forName("UTF-8"), events.get());
-        else if (tail)
-            return FileObservable.tailTextFile(file, 0, sampleTimeMs, Charset.forName("UTF-8"));
-        else
-            // TODO use Observable.using
-            return StringObservable.split(StringObservable.from(createReader(file, 0)), "\n");
+	if (tail && events.isPresent())
+	    return FileObservable.tailTextFile(file, 0,
+		    Charset.forName("UTF-8"), events.get());
+	else if (tail)
+	    return FileObservable.tailTextFile(file, 0, sampleTimeMs,
+		    Charset.forName("UTF-8"));
+	else
+	    // TODO use Observable.using
+	    return StringObservable.split(
+		    StringObservable.from(createReader(file, 0)), "\n");
     }
 }
