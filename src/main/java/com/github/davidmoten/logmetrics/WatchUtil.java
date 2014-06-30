@@ -10,9 +10,9 @@ public class WatchUtil {
 
     public static Watch merge(Collection<Watch> watches) {
         return () -> {
-            Observable<Metrics> o = Observable.empty();
+            Observable<Line> o = Observable.empty();
             for (Watch watch : watches) {
-                o = watch.metrics().subscribeOn(Schedulers.newThread()).mergeWith(o);
+                o = watch.lines().subscribeOn(Schedulers.newThread()).mergeWith(o);
             }
             return o;
         };

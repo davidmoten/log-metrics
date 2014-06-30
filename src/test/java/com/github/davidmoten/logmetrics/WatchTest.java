@@ -22,14 +22,14 @@ public class WatchTest {
         File log2 = new File("target/log2");
         log2.delete();
 
-        MetricExtractor extractor = (category, line) -> Observable.just(new Metrics(category,
+        LineExtractor extractor = (category, line) -> Observable.just(new Line(category,
                 System.currentTimeMillis(), Level.INFO, line));
 
         Watch watch1 = FileWatch.builder().file(log).category("cat1").extractor(extractor).build();
         Watch watch2 = FileWatch.builder().file(log2).category("cat2").extractor(extractor).build();
         Watch watch = WatchUtil.merge(watch1, watch2);
 
-        watch.metrics().lift(Logging.logger().showValue().log()).subscribe();
+        watch.lines().lift(Logging.logger().showValue().log()).subscribe();
 
         PrintWriter out = new PrintWriter(log);
         PrintWriter out2 = new PrintWriter(log2);
@@ -47,7 +47,7 @@ public class WatchTest {
     @Test
     public void test2() throws InterruptedException, IOException {
 
-        MetricExtractor extractor = (category, line) -> Observable.just(new Metrics(category,
+        LineExtractor extractor = (category, line) -> Observable.just(new Line(category,
                 System.currentTimeMillis(), Level.INFO, line));
 
         File logs = new File(System.getProperty("user.home") + "/temp/logs");
@@ -58,7 +58,7 @@ public class WatchTest {
                     .extractor(extractor).build();
             watch = WatchUtil.merge(watch, w);
         }
-        watch.metrics().lift(Logging.logger().showValue().log()).subscribe();
+        watch.lines().lift(Logging.logger().showValue().log()).subscribe();
         Thread.sleep(3000000);
     }
 }

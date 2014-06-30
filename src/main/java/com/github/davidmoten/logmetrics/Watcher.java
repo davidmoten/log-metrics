@@ -12,8 +12,8 @@ public class Watcher {
 		this.watched = watched;
 	}
 
-	public Observable<Metrics> run() {
-		return Observable.from(watched).flatMap(w -> w.metrics());
+	public Observable<Line> run() {
+		return Observable.from(watched).flatMap(w -> w.lines());
 	}
 
 }

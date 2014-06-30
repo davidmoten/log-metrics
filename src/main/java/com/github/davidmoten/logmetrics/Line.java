@@ -1,13 +1,13 @@
 package com.github.davidmoten.logmetrics;
 
-public class Metrics {
+public class Line {
 
     private final long timestamp;
     private final Level level;
     private final String line;
     private final String category;
 
-    public Metrics(String category, long timestamp, Level level, String line) {
+    public Line(String category, long timestamp, Level level, String line) {
         this.category = category;
         this.timestamp = timestamp;
         this.level = level;

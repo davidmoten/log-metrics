@@ -17,12 +17,12 @@ public class FileWatch implements Watch {
     private final String category;
     private final File file;
     private final boolean tail;
-    private final MetricExtractor extractor;
+    private final LineExtractor extractor;
     private final Optional<Long> startTime;
     private final long sampleTimeMs;
     private final Optional<Observable<?>> events;
 
-    private FileWatch(String category, File file, boolean tail, MetricExtractor extractor,
+    private FileWatch(String category, File file, boolean tail, LineExtractor extractor,
             Optional<Long> startTime, long sampleTimeMs, Optional<Observable<?>> events) {
         if (file == null)
             throw new NullPointerException("file parameter cannot be null");
@@ -46,7 +46,7 @@ public class FileWatch implements Watch {
         private String category = "General";
         private File file;
         private boolean tail = true;
-        private MetricExtractor extractor;
+        private LineExtractor extractor;
         private Optional<Long> startTime = Optional.absent();
         private long sampleTimeMs = 1000;
         private Optional<Observable<?>> events = Optional.absent();
@@ -69,7 +69,7 @@ public class FileWatch implements Watch {
             return this;
         }
 
-        public Builder extractor(MetricExtractor extractor) {
+        public Builder extractor(LineExtractor extractor) {
             this.extractor = extractor;
             return this;
         }
@@ -105,7 +105,7 @@ public class FileWatch implements Watch {
     }
 
     @Override
-    public Observable<Metrics> metrics() {
+    public Observable<Line> lines() {
 
         return tail()
         // extract metrics
@@ -115,12 +115,12 @@ public class FileWatch implements Watch {
 
     }
 
-    private Func1<String, Observable<? extends Metrics>> toMetrics(final MetricExtractor extractor,
+    private Func1<String, Observable<? extends Line>> toMetrics(final LineExtractor extractor,
             final String category) {
         return line -> extractor.extract(category, line);
     }
 
-    private Func1<Metrics, Boolean> after(final Optional<Long> startTime) {
+    private Func1<Line, Boolean> after(final Optional<Long> startTime) {
         return metrics -> {
             if (startTime.isPresent()) {
                 return metrics.getTimestamp() >= startTime.get();
