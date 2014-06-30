@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import com.google.common.base.Throwables;
+
 public final class Util {
 
     public static FileReader createReader(File file, long position) {
@@ -12,7 +14,7 @@ public final class Util {
 	    reader.skip(position);
 	    return reader;
 	} catch (IOException e) {
-	    throw new RuntimeException(e);
+	    throw Throwables.propagate(e);
 	}
     }
 
